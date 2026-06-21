@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 import os
-import typing
+
+from overlay import Overlay
 
 OPTIONS = ("-", "OldToronto", "York", "EastYork", "NorthYork", "Etobicoke", "Scarborough")
 
@@ -10,6 +11,8 @@ class Main(tk.Tk):
     def __init__(self):
         """ Initialize the options window. """
         super(Main, self).__init__()
+        self.exiting = False
+
         self.title("APS360 Screencapper")
         self.geometry("400x150+0+0")
         self.minsize(400, 150)
@@ -43,16 +46,21 @@ class Main(tk.Tk):
         self.error_id_lbl = ttk.Label(self.frame, text="Must be a valid ID >= 0.", foreground="#FF0000")
         self.error_id_lbl.grid_forget()
 
-        ttk.Button(self.frame, text="Go", width=12, command=lambda: self.get_current_picture_id_components()).grid(column=0, row=2, sticky="w", pady=5)
+        ttk.Button(self.frame, text="Go", width=12, command=lambda: self.check_options()).grid(column=0, row=2, sticky="w", pady=5)
+
+        self.set_borough = None
+        self.set_id = None
 
     def on_quit(self) -> None:
+        self.exiting = True
         self.destroy()
 
     def run(self) -> None:
+        self.focus()
         self.mainloop()
 
-    def get_current_picture_id_components(self) -> typing.Union[None, tuple[str, str]]:
-        """ Returns (borough, building_id) if the borough is set and the building id is a valid integer; otherwise, return None."""
+    def check_options(self) -> None:
+        """ Closes this window for the Overlay window if the borough is set and the building id is a valid integer; otherwise, raise error in interface."""
         valid = True
 
         borough = self.current_borough.get()
@@ -69,7 +77,13 @@ class Main(tk.Tk):
         else:
             self.error_id_lbl.grid_forget()
 
-        return (borough, f"{building_id}") if valid else None
+        if not valid:
+            return
+
+        self.set_borough = borough
+        self.set_id = int(building_id)
+        self.exiting = False
+        self.destroy()
 
     def increment_building_id(self) -> None:
         building_id = self.building_entry.get()
@@ -81,5 +95,16 @@ class Main(tk.Tk):
         self.building_entry.delete(0, tk.END)
         self.building_entry.insert(0, str(max(0, int(building_id) - 1)) if building_id.isdigit() else "0")
 
+def main():
+    while True:
+        options_window = Main()
+        options_window.run()
+        if options_window.exiting:
+            break
+        if options_window.set_id is None or options_window.set_borough is None:
+            continue
+        overlay_window = Overlay(options_window.set_borough, options_window.set_id)
+        overlay_window.run()
+
 if __name__ == "__main__":
-    Main().run()
+    main()
