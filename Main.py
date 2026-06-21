@@ -10,7 +10,7 @@ class Main(tk.Tk):
         self.frame.grid()
         ttk.Label(self.frame, text = "Hello world!").grid(column = 0, row = 0)
         ttk.Button(self.frame, text = "Quit", command = self.on_quit).grid(column = 0, row = 1)
-        self.bind("<Escape>", func = lambda ev: self.on_quit)
+        self.bind("<Escape>", func = lambda ev: self.on_quit())
         self.protocol("WM_DELETE_WINDOW", self.on_quit)
 
     def on_quit(self):
