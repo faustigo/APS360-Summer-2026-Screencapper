@@ -6,6 +6,8 @@ class Main(tk.Tk):
 
     def __init__(self):
         super(Main, self).__init__()
+        self.title("Screencapper")
+        self.geometry("400x100+0+0")
         self.frame = ttk.Frame(self, padding = 10)
         self.frame.grid()
         ttk.Label(self.frame, text = "Hello world!").grid(column = 0, row = 0)
