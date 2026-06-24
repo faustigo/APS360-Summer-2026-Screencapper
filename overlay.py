@@ -54,6 +54,8 @@ class Overlay(tk.Tk):
     def update_overlay(self) -> None:
         self.attributes("-topmost", True)
         self.update_canvas()
+        if self.after_proc_id is not None: # Don't double-call this function
+            self.after_cancel(self.after_proc_id)
         self.after_proc_id = self.after(50, self.update_overlay)
 
     def update_canvas(self):
@@ -81,8 +83,11 @@ class Overlay(tk.Tk):
 
     def take_screenshot(self, event):
         """ Create screenshot and resize it. """
-        TARGET_SIZE = (500, 500)
+        self.withdraw() # Hide window
+        if not os.path.exists("out/"):
+            os.mkdir("out")
 
+        TARGET_SIZE = (500, 500)
         with mss.MSS() as sct:
             # TODO select window and ignore overlay
             monitor = { "top": self.screenshot_y, "left": self.screenshot_x, "width": self.snip_size, "height": self.snip_size }
@@ -97,7 +102,8 @@ class Overlay(tk.Tk):
             while os.path.exists(file_id):
                 file_id = f"out/{self.id_str}_{next(c)}.jpg"
             cv2.imwrite(file_id, scaled)
-        pass
+
+        self.deiconify() # Reshow window
 
     def run(self) -> None:
         self.update_overlay()
