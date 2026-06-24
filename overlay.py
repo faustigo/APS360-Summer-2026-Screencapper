@@ -86,6 +86,8 @@ class Overlay(tk.Tk):
         self.withdraw() # Hide window
         if not os.path.exists("out/"):
             os.mkdir("out")
+        if not os.path.exists(f"out/{self.borough}/"):
+            os.mkdir(f"out/{self.borough}")
 
         TARGET_SIZE = (500, 500)
         with mss.MSS() as sct:
@@ -98,9 +100,9 @@ class Overlay(tk.Tk):
 
             # find appropriate filename
             c = itertools.count(start=1)
-            file_id = f"out/{self.id_str}_{next(c)}.jpg"
+            file_id = f"out/{self.borough}/{self.id_str}_{next(c)}.jpg"
             while os.path.exists(file_id):
-                file_id = f"out/{self.id_str}_{next(c)}.jpg"
+                file_id = f"out/{self.borough}/{self.id_str}_{next(c)}.jpg"
             cv2.imwrite(file_id, scaled)
 
         self.deiconify() # Reshow window
