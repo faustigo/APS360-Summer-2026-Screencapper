@@ -1,6 +1,11 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import os
+import mss
+import cv2
+import numpy
+import numpy as np
+import itertools
 
 class Overlay(tk.Tk):
 
@@ -18,7 +23,8 @@ class Overlay(tk.Tk):
 
         self.bind("<Escape>", func=lambda ev: self.on_quit())
         self.bind("<MouseWheel>", func=self.on_scroll)
-        self.bind("<Motion>", self.on_motion)
+        self.bind("<Motion>", func=self.on_motion)
+        self.bind("<ButtonRelease-1>", func=self.take_screenshot)
         self.bind("w", func=lambda ev: self.change_id(1))
         self.bind("s", func=lambda ev: self.change_id(-1))
 
@@ -72,6 +78,26 @@ class Overlay(tk.Tk):
 
     def on_motion(self, event):
         self.screenshot_x, self.screenshot_y = event.x, event.y
+
+    def take_screenshot(self, event):
+        """ Create screenshot and resize it. """
+        TARGET_SIZE = (500, 500)
+
+        with mss.MSS() as sct:
+            # TODO select window and ignore overlay
+            monitor = { "top": self.screenshot_y, "left": self.screenshot_x, "width": self.snip_size, "height": self.snip_size }
+            screenshot = sct.grab(monitor)
+            img = np.array(screenshot)
+            img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+            scaled = cv2.resize(img, TARGET_SIZE, interpolation=cv2.INTER_AREA)
+
+            # find appropriate filename
+            c = itertools.count(start=1)
+            file_id = f"out/{self.id_str}_{next(c)}.jpg"
+            while os.path.exists(file_id):
+                file_id = f"out/{self.id_str}_{next(c)}.jpg"
+            cv2.imwrite(file_id, scaled)
+        pass
 
     def run(self) -> None:
         self.update_overlay()
